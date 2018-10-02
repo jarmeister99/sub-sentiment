@@ -3,8 +3,8 @@ import sys
 import sqlite3
 import os
 import datetime
-import string
 import time
+from ssutil import *
 
 settings = {}
 
@@ -83,9 +83,9 @@ def get_titles_and_comments(reddit, sub):
     top = subreddit.top('day')
     for post in top:
         post.comments.replace_more()
-        clean_title = post.title.translate(str.maketrans('', '', string.punctuation))
+        clean_title = clean(post.title)
         for comment in post.comments.list():
-            clean_comment = comment.body.translate(str.maketrans('', '', string.punctuation))
+            clean_comment = clean(comment.body)
             titles[clean_comment] = clean_title
             comments.append(clean_comment)
             count += 1
