@@ -35,14 +35,12 @@ def main():
 # RETURN: None
 def fill_table(cursor, conn, reddit, today, sub):
     count = 0
-    comments = get_comments(reddit, sub)
-    try:
-        cursor.execute("ALTER TABLE {tn} ADD COLUMN '{cn}' {ct}".format(tn="comments", cn=today, ct="TEXT"))
-    except sqlite3.OperationalError:
-        pass
+    titles, comments = get_titles_and_comments(reddit, sub)
     for comment in comments:
         try:
-            cursor.execute("INSERT INTO comments ('{date}') VALUES ('{comment}');".format(date=today, comment=comment))
+            cursor.execute(
+                "INSERT INTO '{tn}' ('{col1}', '{col2}') VALUES ('{val1}', '{val2}');"
+                .format(tn=today, col1='Comments', col2='Titles', val1=comment, val2=titles[comment]))
             count += 1
         except sqlite3.IntegrityError:
             pass
@@ -68,21 +66,28 @@ def create_database(today, sub):
     conn = sqlite3.connect(db_path.format(sub=sub) + "/comments.sqlite")
 
     cursor = conn.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS comments ('{date}' varchar(8000) unique);".format(date=today))
+    cursor.execute(
+        "CREATE TABLE IF NOT EXISTS '{tn}' ('{col1}' varchar(8000) unique, '{col2}' varchar(8000));"
+        .format(tn=today, sub=sub, col1='Comments', col2="Titles"))
     return cursor, conn
 
 
-# returns a list containing all comments found on all posts from the day
+# returns a list of lists containing all comments found on all posts from the day, as well as a list of titles
 # RETURN: list of strings (punctuation stripped)
-def get_comments(reddit, sub):
+def get_titles_and_comments(reddit, sub):
     count, interval = 0, -1
     comments = []
+    # maps comment -> title
+    titles = {}
     subreddit = reddit.subreddit(sub)
     top = subreddit.top('day')
     for post in top:
         post.comments.replace_more()
+        clean_title = post.title.translate(str.maketrans('', '', string.punctuation))
         for comment in post.comments.list():
-            comments.append(comment.body.translate(str.maketrans('', '', string.punctuation)))
+            clean_comment = comment.body.translate(str.maketrans('', '', string.punctuation))
+            titles[clean_comment] = clean_title
+            comments.append(clean_comment)
             count += 1
             if settings['comment_progress_updates'].lower() == "true":
                 if interval == -1:
@@ -93,7 +98,9 @@ def get_comments(reddit, sub):
                 if count % interval == 0:
                     print("%d comments recorded" % count)
     print("Total recorded: {count} {sub} comments".format(count=count, sub=sub))
-    return comments
+    for comment in comments:
+        print(comment)
+    return titles, comments
 
 
 # read the contents of an ini file and write them to a dictionary
@@ -119,6 +126,7 @@ def read_init():
 def write_ini():
     try:
         with open("init.ini", "w+") as f:
+            # important to leave empty string at the end so .join() works properly
             required_values = ["client_id",
                                "client_secret",
                                "client_password",
