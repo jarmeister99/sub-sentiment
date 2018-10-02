@@ -9,10 +9,11 @@ import os
 # cleans a string by removing punctuation and trailing whitespace
 # RETURN: cleaned string
 def clean(s):
-    return s.translate(str.maketrans('', '', string.punctuation)).rstrip()
+    return s.translate(str.maketrans('', '', string.punctuation)).rstrip().lower()
 
 
-# returns a PRAW reddit instance
+# returns a PRAW reddit
+# INPUT: settings file (used to establish reddit connection)
 # RETURN: reddit (PRAW)
 def get_reddit(settings):
     try:
@@ -79,9 +80,10 @@ def get_date():
 # to the database
 # INPUT: db conn, praw reddit, date (mm-dd-yyyy)
 # RETURN: None
-def fill_table(conn, today, sub, titles, comments):
+def fill_table(conn, sub, titles, comments):
     count = 0
     cursor = conn.cursor()
+    today = get_date()
     for comment in comments:
         try:
             cursor.execute(
@@ -97,6 +99,7 @@ def fill_table(conn, today, sub, titles, comments):
 # returns a list of lists containing all comments found on all posts from the day, as well as a list of titles
 # RETURN: <list of titles, list of comments> (punctuation stripped)
 def get_titles_and_comments(reddit, sub, settings):
+    print('Browsing %s' % sub)
     count, interval = 0, -1
     comments = []
     # maps comment -> title
@@ -120,16 +123,15 @@ def get_titles_and_comments(reddit, sub, settings):
                 if count % interval == 0:
                     print("%d comments recorded" % count)
     print("Total recorded: {count} {sub} comments".format(count=count, sub=sub))
-    for comment in comments:
-        print(comment)
     return titles, comments
 
 
 # creates a directory named <subreddit> and creates
 # a database with a table named comments within it
-# INPUT: date (mm-dd-yyyy), subreddit, settings
+# INPUT: subreddit, settings
 # RETURN: db connection
-def create_database(today, sub, settings):
+def create_database(sub, settings):
+    today = get_date()
     # fetch path from .ini else resort to default
     try:
         db_path = settings["db_path"].format(sub=sub)
