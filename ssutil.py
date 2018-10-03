@@ -110,7 +110,7 @@ def get_titles_and_comments(reddit, sub, settings):
         post.comments.replace_more()
         clean_title = clean(post.title)
         for comment in post.comments.list():
-            clean_comment = clean(comment.body)
+            clean_comment = comment.body
             titles[clean_comment] = clean_title
             comments.append(clean_comment)
             count += 1
