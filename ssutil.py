@@ -1,15 +1,22 @@
 import string
 import sys
 import datetime
-import praw
+import praw, prawcore
 import sqlite3
 import os
 
 
 # cleans a string by removing punctuation and trailing whitespace
 # RETURN: cleaned string
+
 def clean(s):
     return s.translate(str.maketrans('', '', string.punctuation)).rstrip().lower()
+
+
+# make a string suitable for SQLite db
+# RETURN: barely cleaned string
+def soft_clean(s):
+    return s.replace("'", "`")
 
 
 # returns a PRAW reddit
@@ -22,6 +29,11 @@ def get_reddit(settings):
                              password=settings['client_password'],
                              user_agent=settings['user_agent'],
                              username=settings['client_username'])
+        try:
+            print(reddit.user.me())
+        except prawcore.OAuthException:
+            print("Error: Invalid redddit API credentials")
+            sys.exit()
         return reddit
     except KeyError:
         print("Error: Unable to read all reddit API credentials from init.ini")
@@ -110,7 +122,7 @@ def get_titles_and_comments(reddit, sub, settings):
         post.comments.replace_more()
         clean_title = clean(post.title)
         for comment in post.comments.list():
-            clean_comment = comment.body
+            clean_comment = soft_clean(comment.body)
             titles[clean_comment] = clean_title
             comments.append(clean_comment)
             count += 1
