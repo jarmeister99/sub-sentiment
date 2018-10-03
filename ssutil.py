@@ -62,17 +62,6 @@ def write_ini(path):
         sys.exit()
 
 
-# write typemap.ini based off settings
-# RETURN: None
-def write_typemap(settings, path):
-    try:
-        with open(path, 'w+') as f:
-            f.writelines('=\n'.join(list(settings.keys()) + [""]))
-    except IOError:
-        print("Error: Unable to write typemap.ini")
-        sys.exit()
-
-
 # read the contents of an ini file and write them to a dictionary
 # INPUT: path to .ini
 # RETURN: dictionary (settings)
@@ -92,35 +81,6 @@ def read_ini(path):
         write_ini(path)
         sys.exit()
     return settings
-
-
-# ensure that all user entered settings are the proper type
-# -- Valid types for typemap: FLOAT, INT, BOOLEAN
-# INPUT: dictionary (settings), dictionary (key : type)
-# RETURN: None
-def check_setting_validity(settings, typemap):
-    for key in settings:
-        try:
-            required_type = typemap[key]
-            user_input = settings[key]
-            if required_type.lower() == 'float':
-                try:
-                    float(user_input)
-                except NameError:
-                    print("Error: {setting} is expecting {type}".format(setting=key, type=required_type))
-            elif required_type.lower() == 'int':
-                if not user_input.isdigit():
-                    print("Error: {setting} is expecting {type}".format(setting=key, type=required_type))
-                    raise NameError
-            elif required_type.lower() == 'boolean':
-                print('checking bool')
-                try:
-                    eval(user_input.capitalize())
-                except NameError:
-                    print("Error: {setting} is expecting {type}".format(setting=key, type=required_type))
-        # key error will occur if key is not constrained by typemap
-        except KeyError:
-            pass
 
 
 # find the current date
