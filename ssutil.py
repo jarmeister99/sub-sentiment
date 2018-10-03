@@ -38,14 +38,15 @@ def get_reddit(settings):
         return reddit
     except KeyError:
         print("Error: Unable to read all reddit API credentials from init.ini")
-        sys.exit._exit()
+        sys.exit()
 
 
 # write init.ini to a default state
+# INPUT: path to .ini
 # RETURN: None
-def write_ini():
+def write_ini(path):
     try:
-        with open("init.ini", "w+") as f:
+        with open(path, "w+") as f:
             # important to leave empty string at the end so .join() works properly
             required_values = ["client_id",
                                "client_secret",
@@ -61,24 +62,65 @@ def write_ini():
         sys.exit()
 
 
+# write typemap.ini based off settings
+# RETURN: None
+def write_typemap(settings, path):
+    try:
+        with open(path, 'w+') as f:
+            f.writelines('=\n'.join(list(settings.keys()) + [""]))
+    except IOError:
+        print("Error: Unable to write typemap.ini")
+        sys.exit()
+
+
 # read the contents of an ini file and write them to a dictionary
+# INPUT: path to .ini
 # RETURN: dictionary (settings)
-def get_settings():
+def read_ini(path):
     settings = {}
     try:
-        with open("init.ini", "r") as f:
+        with open(path, "r") as f:
             lines = [line.strip('\n').split("=") for line in f]
             for line in lines:
                 try:
                     settings[line[0]] = line[1]
                 except IndexError:
-                    print("Error: Invalid arguments in init.ini")
+                    print("Error: Invalid arguments in .ini file")
                     sys.exit()
     except FileNotFoundError:
-        print("Error: init.ini uninitialized. Please add your reddit API credentials.")
-        write_ini()
+        print("Error: Requested .ini uninitialized.")
+        write_ini(path)
         sys.exit()
     return settings
+
+
+# ensure that all user entered settings are the proper type
+# -- Valid types for typemap: FLOAT, INT, BOOLEAN
+# INPUT: dictionary (settings), dictionary (key : type)
+# RETURN: None
+def check_setting_validity(settings, typemap):
+    for key in settings:
+        try:
+            required_type = typemap[key]
+            user_input = settings[key]
+            if required_type.lower() == 'float':
+                try:
+                    float(user_input)
+                except NameError:
+                    print("Error: {setting} is expecting {type}".format(setting=key, type=required_type))
+            elif required_type.lower() == 'int':
+                if not user_input.isdigit():
+                    print("Error: {setting} is expecting {type}".format(setting=key, type=required_type))
+                    raise NameError
+            elif required_type.lower() == 'boolean':
+                print('checking bool')
+                try:
+                    eval(user_input.capitalize())
+                except NameError:
+                    print("Error: {setting} is expecting {type}".format(setting=key, type=required_type))
+        # key error will occur if key is not constrained by typemap
+        except KeyError:
+            pass
 
 
 # find the current date
