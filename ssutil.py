@@ -1,9 +1,10 @@
 import string
 import sys
 import datetime
-import praw, prawcore
+import praw
 import sqlite3
 import os
+from prawcore import OAuthException
 
 
 # cleans a string by removing punctuation and trailing whitespace
@@ -30,14 +31,14 @@ def get_reddit(settings):
                              user_agent=settings['user_agent'],
                              username=settings['client_username'])
         try:
-            print(reddit.user.me())
-        except prawcore.OAuthException:
+            reddit.user.me()
+        except OAuthException:
             print("Error: Invalid redddit API credentials")
             sys.exit()
         return reddit
     except KeyError:
         print("Error: Unable to read all reddit API credentials from init.ini")
-        sys.exit()
+        sys.exit._exit()
 
 
 # write init.ini to a default state
