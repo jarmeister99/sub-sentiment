@@ -3,7 +3,7 @@ from ssutil import *
 
 
 def main():
-    settings = get_settings()
+    settings = read_ini('init.ini')
     reddit = get_reddit(settings)
     for sub in sys.argv[1:]:
         conn = create_database(sub, settings)

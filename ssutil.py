@@ -7,19 +7,6 @@ import os
 from prawcore import OAuthException
 
 
-# cleans a string by removing punctuation and trailing whitespace
-# RETURN: cleaned string
-
-def clean(s):
-    return s.translate(str.maketrans('', '', string.punctuation)).rstrip().lower()
-
-
-# make a string suitable for SQLite db
-# RETURN: barely cleaned string
-def soft_clean(s):
-    return s.replace("'", "`")
-
-
 # returns a PRAW reddit
 # INPUT: settings file (used to establish reddit connection)
 # RETURN: reddit (PRAW)
