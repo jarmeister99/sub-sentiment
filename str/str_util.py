@@ -1,4 +1,5 @@
-import string
+from string import punctuation
+from statistics import mode, median, StatisticsError
 
 
 # calculate the average word length of a sentence
@@ -12,6 +13,40 @@ def get_average_word_length(sentence):
         total_words += 1
         total_letters += len(word)
     return total_letters / total_words
+
+
+# find the median word length of a sentence
+# INPUT: string sentence
+# RETURN: median word length
+def get_median_word_length(sentence):
+    words = clean(sentence).split()
+    list_of_lengths = [len(word) for word in words]
+    return median(list_of_lengths)
+
+
+# calculate the modal word length of a sentence
+# INPUT: string sentence
+# RETURN: int mode
+def get_mode_word_length(sentence):
+    words = clean(sentence).split()
+    list_of_lengths = [len(word) for word in words]
+    try:
+        return mode(list_of_lengths)
+    except StatisticsError:
+        print('Info: No mode found')
+        return -1
+
+
+# find the modal word of a sentence
+# INPUT: string sentence
+# RETURN: string mode
+def get_mode_word(sentence):
+    words = clean(sentence).split()
+    try:
+        return mode(words)
+    except StatisticsError:
+        print('Info: No mode found')
+        return ''
 
 
 # read contractions.txt and create a list from the entries
@@ -32,12 +67,10 @@ def get_contractions(path='contractions.txt'):
 def split_by_punctuation(sentence, contractions):
     # first split by space
     words = sentence.split(' ')
-    print(words)
-    print(contractions)
     for i in range(len(words)):
 
         # if the word contains any punctuation
-        if any(p in words[i] for p in string.punctuation):
+        if any(p in words[i] for p in punctuation):
 
             # check if the word is a real contraction
             if not words[i].lower() in contractions:
@@ -77,7 +110,7 @@ def get_neighbors(sentence, index):
 # cleans a string by removing punctuation and trailing whitespace
 # RETURN: cleaned string
 def clean(s):
-    return s.translate(str.maketrans('', '', string.punctuation)).rstrip().lower()
+    return s.translate(str.maketrans('', '', punctuation)).rstrip().lower()
 
 
 # make a string suitable for SQLite db
