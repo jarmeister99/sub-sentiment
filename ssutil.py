@@ -1,10 +1,11 @@
-import string
+
 import sys
 import datetime
 import praw
 import sqlite3
 import os
 from prawcore import OAuthException
+from str.str_util import clean, soft_clean
 
 
 # returns a PRAW reddit

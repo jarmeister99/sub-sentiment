@@ -85,7 +85,7 @@ def split_by_punctuation(sentence, contractions):
 # RETURN: the strings in indeces (i - 1, i + 1)
 def get_neighbors(sentence, index):
     # preserve punctuation in the sentence
-    words = ''.join((char if char.isalpha() else char + ' ') for char in sentence).split()
+    words = split_by_punctuation(sentence, get_contractions())
 
     # case where words is empty
     if not words:
